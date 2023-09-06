@@ -14,7 +14,6 @@ export class User {
   @Prop()
   age: number;
 
-  @Prop({ required: true })
   name: string;
 
   @Prop()
