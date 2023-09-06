@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { UsersModule } from './users/users.module';
       inject: [ConfigService],
     }),
     ConfigModule.forRoot({isGlobal:true}),// Cấu hình toàn cục, truy cập từ bất kỳ module nào trong ứng dụng mà không cần phải import lại ConfigModule
-    UsersModule,
+    UsersModule, AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
