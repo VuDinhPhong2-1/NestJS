@@ -5,6 +5,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { LocalAuthGuard } from './auth/local-auth.guard';
 
 @Module({
   imports: [
@@ -15,10 +18,20 @@ import { AuthModule } from './auth/auth.module';
       }),
       inject: [ConfigService],
     }),
-    ConfigModule.forRoot({isGlobal:true}),// Cấu hình toàn cục, truy cập từ bất kỳ module nào trong ứng dụng mà không cần phải import lại ConfigModule
+    ConfigModule.forRoot({ isGlobal: true }),// Cấu hình toàn cục, truy cập từ bất kỳ module nào trong ứng dụng mà không cần phải import lại ConfigModule
     UsersModule, AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+
+    },
+    {
+      provide: APP_GUARD,
+      useClass: LocalAuthGuard,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule { }
