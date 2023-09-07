@@ -6,7 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [UsersModule, PassportModule],
-  providers: [AuthService, LocalStrategy],
+  providers: [AuthService, LocalStrategy], //LocalStrategy sẽ được hệ thống biết khi tạo AuthModule
 })
 export class AuthModule {
 

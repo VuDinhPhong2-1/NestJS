@@ -56,7 +56,8 @@ export class UsersService {
     }
   }
   async isValidPassword(password, hash) {
-    return compareSync(password, hash);
+    const result = compareSync(password, hash);
+    return result;
   }
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
