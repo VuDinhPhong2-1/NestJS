@@ -14,6 +14,7 @@ export class User {
   @Prop()
   age: number;
 
+  @Prop()
   name: string;
 
   @Prop()
@@ -22,20 +23,23 @@ export class User {
   @Prop()
   phone: number;
 
+  @Prop()
+  role: string;
+
   @Prop({ required: true, default: true })
-  isActive: boolean;
+  isActived: boolean;
 
   @Prop()
-  createAt: Date;
+  createdAt: Date;
 
   @Prop()
-  updateAt: Date;
+  updatedAt: Date;
 
   @Prop()
-  deleteAt: Date;
+  deletedAt: Date;
 
   @Prop()
-  isDelete: boolean;
+  isDeleted: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

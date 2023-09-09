@@ -7,7 +7,7 @@ import { Public } from 'src/decorators/customize';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
-  @Public()
+  // @Public()
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     try {
@@ -16,17 +16,17 @@ export class UsersController {
       console.log(error);
     }
   }
-
+  @Public()
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
-
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
-
+  @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);

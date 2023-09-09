@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { LocalAuthGuard } from './auth/local-auth.guard';
 import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
+import { CompaniesModule } from './companies/companies.module';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
       inject: [ConfigService],
     }),
     ConfigModule.forRoot({ isGlobal: true }),// Cấu hình toàn cục, truy cập từ bất kỳ module nào trong ứng dụng mà không cần phải import lại ConfigModule
-    UsersModule, AuthModule,
+    UsersModule, AuthModule, CompaniesModule,
   ],
   controllers: [AppController],
   providers: [AppService,

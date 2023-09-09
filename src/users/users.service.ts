@@ -39,7 +39,6 @@ export class UsersService {
         return "Id không hợp lệ!";
       }
       const user = this.UserModel.findOne({ _id: id })
-      console.log("user", user)
       if (!user) return "Không tồn tại người dùng!"
       return user;
     } catch (error) {
