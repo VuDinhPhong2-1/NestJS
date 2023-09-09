@@ -8,16 +8,4 @@ import { Public } from './decorators/customize';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }
-
-  @Public()
-  @UseGuards(LocalAuthGuard)
-  @Post("/login")
-  handleLogin(@Request() req) {
-    return req.user;
-  }
-
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
-  }
 }
