@@ -25,7 +25,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         return super.canActivate(context);
     }
 
-    handleRequest(err, user, info) {
+    handleRequest(err, user, info) { // sau khi xác thực xong sẽ tự động gán thông tin decode vào biến req.user
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
             throw err || new UnauthorizedException("Token không hợp lệ!!!", "Không xác thực được!!!");
