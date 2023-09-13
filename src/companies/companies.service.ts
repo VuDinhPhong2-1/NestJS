@@ -16,9 +16,10 @@ export class CompaniesService {
     private CompanyModel: SoftDeleteModel<CompanyDocument>) { }
 
   async create(createCompanyDto: CreateCompanyDto, user: IUser) {
+    console.log(createCompanyDto)
     const result = await this.CompanyModel.create(
       {
-        createCompanyDto,
+        ...createCompanyDto,
         createdBy: {
           _id: user._id,
           email: user.email
@@ -36,7 +37,7 @@ export class CompaniesService {
     let defaultLimit = +limit ? +limit : 10;
     const totalItems = (await this.CompanyModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultLimit);
-    const result = await this.CompanyModel.find()
+    const result = await this.CompanyModel.find(filter)
       .skip(offset)
       .limit(defaultLimit)
       // @ts-ignore: Unreachable code error
@@ -61,7 +62,7 @@ export class CompaniesService {
   async update(id: string, updateCompanyDto: UpdateCompanyDto, user: IUser) {
     const result = await this.CompanyModel.findByIdAndUpdate(id,
       {
-        updateCompanyDto,
+        ...updateCompanyDto,
         updatedBy: {
           _id: user._id,
           email: user.email
@@ -74,7 +75,7 @@ export class CompaniesService {
   async remove(id: string, updateCompanyDto: UpdateCompanyDto, user: IUser) {
     const result = await this.CompanyModel.findByIdAndUpdate(id,
       {
-        updateCompanyDto,
+        ...updateCompanyDto,
         deletedBy: {
           _id: user._id,
           email: user.email
