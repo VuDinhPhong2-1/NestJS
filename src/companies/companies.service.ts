@@ -45,6 +45,7 @@ export class CompaniesService {
       .populate(population)
       .exec();
     return {
+      message: "Lấy thành công",
       meta: {
         current: curentPage, //trang hiện tại
         pageSize: limit, //số lượng bản ghi đã lấy
