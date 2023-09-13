@@ -16,12 +16,15 @@ async function bootstrap() {
   app.setViewEngine('ejs');
   app.useGlobalPipes(new ValidationPipe());
 
-  // config interceptors 
-  app.useGlobalInterceptors(new TransformInterceptor());
+// config Reflector 
+  const reflector = app.get(Reflector);
 
   // setup AuthGuard global
-  const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
+
+  // config interceptors 
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
+
   // setup config CORS
   app.enableCors(
     {
