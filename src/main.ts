@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
 async function bootstrap() {
@@ -16,7 +16,7 @@ async function bootstrap() {
   app.setViewEngine('ejs');
   app.useGlobalPipes(new ValidationPipe());
 
-// config Reflector 
+  // config Reflector 
   const reflector = app.get(Reflector);
 
   // setup AuthGuard global
@@ -33,6 +33,14 @@ async function bootstrap() {
       "preflightContinue": false,
     }
   );
+
+  //config versioning url
+  app.setGlobalPrefix('api') // Tiền tố sẽ là "api"
+  app.enableVersioning({
+    type: VersioningType.URI, // mặc định của VersioningType.URI là '/v'
+    defaultVersion: ['1', '2'], // => v1,v2
+  });
+
   await app.listen(configService.get<string>('PORT'));
   console.log("App is listening on: ", configService.get<string>('PORT'));
 }
