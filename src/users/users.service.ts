@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,6 +7,8 @@ import mongoose, { Model } from 'mongoose';
 import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
 import { error } from 'console';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose/dist/soft-delete-model';
+import { IUser } from './users.interface';
+import aqp from 'api-query-params';
 @Injectable()
 export class UsersService {
   constructor(
@@ -29,21 +31,42 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(curentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+    delete filter.page;
+    delete filter.limit;
+    let offset = (+curentPage - 1) * (+limit);
+    let defaultLimit = +limit ? +limit : 10;
+    const totalItems = (await this.UserModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+    const result = await this.UserModel.find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      // @ts-ignore: Unreachable code error
+      .sort(sort)
+      .populate(population)
+      .exec();
+    return {
+      message: "Lấy thành công",
+      meta: {
+        current: curentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result //kết quả query
+    }
   }
 
-  findOne(id: string) {
-    try {
-      if (!mongoose.isValidObjectId(id)) {
-        return "Id không hợp lệ!";
-      }
-      const user = this.UserModel.findOne({ _id: id })
-      if (!user) return "Không tồn tại người dùng!"
-      return user;
-    } catch (error) {
-      console.log(error)
+  async findOne(id: string) {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new NotFoundException('Id không hợp lệ!');
     }
+    const user = await this.UserModel.findOne({ _id: id }).select('-password').exec();
+    if (!user) {
+      throw new NotFoundException('Không tồn tại người dùng!');
+    }
+    return user;
   }
   async findOneByEmail(email: string) {
     try {
@@ -65,11 +88,21 @@ export class UsersService {
       if (!userUpdate) return 'Lỗi không thể cập nhật!'
       return userUpdate;
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      throw new InternalServerErrorException('Có lỗi xảy ra trong quá trình xử lý yêu cầu.');
     }
   }
 
-  remove(id: string) {
-    return this.UserModel.softDelete({ _id: id });
+  async remove(id: string, user: IUser) {
+    this.UserModel.softDelete({ _id: id });
+    const result = await this.UserModel.findByIdAndUpdate(
+      {
+        _id: id,
+        deletedBy: {
+          _id: user._id,
+          email: user.email
+        }
+      });
+    return result;
   }
 }

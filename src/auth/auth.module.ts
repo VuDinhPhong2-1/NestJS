@@ -7,6 +7,8 @@ import { JwtModule } from '@nestjs/jwt'; // Thư viện hỗ trợ xác thực v
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './passport/jwt.strategy'; // Chiến lược xác minh và giải mã JWT trong ứng dụng
 import { AuthController } from './auth.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserSchema } from 'src/users/schemas/user.schema';
 @Module({
   imports: [
     UsersModule,
@@ -22,7 +24,7 @@ import { AuthController } from './auth.controller';
       }),
       inject: [ConfigService],
     }),
-
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy], //LocalStrategy sẽ được hệ thống biết khi tạo AuthModule
