@@ -52,6 +52,9 @@ export class User {
   };
 
   @Prop()
+  refresh_token: string
+
+  @Prop()
   role: string;
 
   @Prop()

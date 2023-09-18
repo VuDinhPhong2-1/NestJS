@@ -105,4 +105,12 @@ export class UsersService {
       });
     return result;
   }
+
+  async updateUserToken(refresh_token: string, _id: string) {
+    return this.UserModel.updateOne(
+      {_id},
+      {
+        refresh_token: refresh_token
+      });
+  }
 }
