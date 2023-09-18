@@ -1,31 +1,41 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { error } from 'console';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/users.interface';
+import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { retry, throwError } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
+import ms from 'ms';
+import { Response } from 'express';
 @Injectable()
 export class AuthService {
     constructor(
         private usersService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        @InjectModel(User.name)
+        private UserModel: SoftDeleteModel<UserDocument>,
+        private configService: ConfigService
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
         const user = await this.usersService.findOneByEmail(username);
         if (typeof user === 'string') {
             // Xử lý trường hợp lỗi ở đây, ví dụ: throw một lỗi xác thực
-            return error("Tên đăng nhập không hợp lệ!");
+            throw new InternalServerErrorException("Tên đăng nhập không hợp lệ!");
         }
         const isPassword = await this.usersService.isValidPassword(pass, user.password)
-        if (isPassword) {
-            const access_token = await this.login(user);
-            return access_token;
-        } else {
-            return error("Mật khẩu và Tên người dùng không đúng!!!")
+        if (!isPassword) {
+            throw new InternalServerErrorException("Mật khẩu và Tên người dùng không đúng!!!");
         }
+        // trả về thông tin người dùng => login nhận thông tin và tạo token...
+        return user;
     }
 
-    async login(user: IUser) {
+    async login(user: IUser, response: Response) {
         const { _id, name, email, role } = user;
         const payload = {
             sub: "token login",
@@ -35,12 +45,46 @@ export class AuthService {
             email,
             role
         };
+        // gọi tới hàm tạo refresh token để tạo token
+        const refresh_token = this.createRefreshToken(payload);
+        // gọi tới hàm update token cho user
+        await this.usersService.updateUserToken(refresh_token, _id.toString());
+        //set refresh token cần ở cookie
+        response.cookie('key', 'value', {
+            httpOnly: true,
+            maxAge: ms(this.configService.get<string>("JWT_REFRESH_EXPIRE"))
+        });
         return {
             access_token: this.jwtService.sign(payload),
-            _id,
-            name,
-            email,
-            role
+            user: {
+                _id,
+                name,
+                email,
+            },
+            role,
         };
+    }
+
+    async RegisterUser(registerUserDto: RegisterUserDto) {
+        const emailExists = await this.UserModel.findOne({ email: registerUserDto.email });
+        if (emailExists) {
+            throw new ConflictException('Email đã tồn tại!!!');
+        }
+        const roleUser = 'USER';
+        const pass = await this.usersService.hashPassword(registerUserDto.password)
+        const result = await this.UserModel.create(
+            {
+                ...registerUserDto,
+                role: roleUser,
+                password: pass
+            });
+        return result;
+    }
+    createRefreshToken = (payload) => {
+        const refresh_token = this.jwtService.sign(payload, {
+            secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
+            expiresIn: ms(this.configService.get<string>("JWT_REFRESH_EXPIRE")) / 1000,
+        });
+        return refresh_token;
     }
 }
