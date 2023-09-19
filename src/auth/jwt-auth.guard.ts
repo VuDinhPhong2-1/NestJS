@@ -30,6 +30,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         if (err || !user) {
             throw err || new UnauthorizedException("Token không hợp lệ!!!", "Không xác thực được!!!");
         }
+        console.log("user trong jwt auth guard",user)
         return user;
     }
 }
