@@ -8,7 +8,7 @@ import { IUser } from 'src/users/users.interface';
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(private configService: ConfigService) {
         super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // tự tìm token
             ignoreExpiration: false,
             secretOrKey: configService.get<string>('JWT_ACCESS_TOKEN_SECRET')
         });
@@ -17,6 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     async validate(payload: IUser) {
         const { _id, name, email, role } = payload;
         // gán biến req.user
+        console.log("payload trong jwt strategy",payload);
         return {
             _id,
             name,
