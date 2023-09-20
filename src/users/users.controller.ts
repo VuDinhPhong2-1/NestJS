@@ -21,11 +21,11 @@ export class UsersController {
   @Public()
   @Get()
   findAll(
-    @Query('page') curentPage: string,
-    @Query('limit') limit: string,
+    @Query('current') current: string,
+    @Query('pageSize') pageSize: string,
     @Query() qs
   ) {
-    return this.usersService.findAll(+curentPage, +limit, qs);
+    return this.usersService.findAll(+current, +pageSize, qs);
   }
   @Public()
   @Get(':id')
