@@ -32,7 +32,6 @@ export class AuthService {
             throw new InternalServerErrorException("Mật khẩu và Tên người dùng không đúng!!!");
         }
         // trả về thông tin người dùng => login nhận thông tin và tạo token...
-        console.log("user trong validateUser của auth service", user)
         return user;
     }
 
@@ -129,6 +128,16 @@ export class AuthService {
             }
         } catch (error) {
             throw new BadRequestException("Token không hợp lệ! Hãy login");
+        }
+    }
+
+    deleteCookieAndToken = async (userId: string, response: Response) => {
+        try {
+            response.clearCookie('refresh_token');
+            await this.usersService.updateUserToken(null, userId);
+            return "ok"
+        } catch (error) {
+            throw new BadRequestException(error);
         }
     }
 }

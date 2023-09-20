@@ -31,12 +31,12 @@ export class UsersService {
     }
   }
 
-  async findAll(curentPage: number, limit: number, qs: string) {
+  async findAll(current: number, pageSize: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
-    delete filter.page;
-    delete filter.limit;
-    let offset = (+curentPage - 1) * (+limit);
-    let defaultLimit = +limit ? +limit : 10;
+    delete filter.current;
+    delete filter.pageSize;
+    let offset = (+current - 1) * (+pageSize);
+    let defaultLimit = +pageSize ? +pageSize : 10;
     const totalItems = (await this.UserModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultLimit);
     const result = await this.UserModel.find(filter)
@@ -49,8 +49,8 @@ export class UsersService {
     return {
       message: "Lấy thành công",
       meta: {
-        current: curentPage, //trang hiện tại
-        pageSize: limit, //số lượng bản ghi đã lấy
+        current: current, //trang hiện tại
+        pageSize: pageSize, //số lượng bản ghi đã lấy
         pages: totalPages, //tổng số trang với điều kiện query
         total: totalItems // tổng số phần tử (số bản ghi)
       },
