@@ -30,6 +30,10 @@ export class CreateJobDto {
     @IsDateString()
     endDate: Date
 
+    @IsNotEmpty({ message: 'endDate không được để trống!' })
+    logo: string
+
+
     @IsNotEmptyObject()
     @IsObject()
     @ValidateNested()

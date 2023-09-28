@@ -11,10 +11,10 @@ export class FilesController {
   @Public()
   @Post('upload')
   @ResponseMessage('Upload single file')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('fileUpload'))
   uploadFile(@UploadedFile(new ParseFilePipeBuilder()
     .addFileTypeValidator({
-      fileType: /^(png|image\/png|application\/pdf|text\/plain|txt)$/i,
+      fileType: /^(png|image\/png|application\/pdf|text\/plain|txt|image\/jpeg)$/i,
     })
     .addMaxSizeValidator({ maxSize: 1024 * 1024 })
     .build({ errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),) file: Express.Multer.File) {
