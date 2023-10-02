@@ -1,25 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ResumesService } from './resumes.service';
-import { CreateResumeDto } from './dto/create-resume.dto';
+import { CreateResumeDto, createUserCvDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
+import { Public, ResponseMessage, User } from 'src/decorators/customize';
+import { IUser } from 'src/users/users.interface';
 
 @Controller('resumes')
 export class ResumesController {
-  constructor(private readonly resumesService: ResumesService) {}
+  constructor(private readonly resumesService: ResumesService) { }
+
 
   @Post()
-  create(@Body() createResumeDto: CreateResumeDto) {
-    return this.resumesService.create(createResumeDto);
+  create(@Body() createUserCvDto: createUserCvDto, @User() user: IUser) {
+    return this.resumesService.create(createUserCvDto, user);
   }
 
+  @Public()
   @Get()
-  findAll() {
-    return this.resumesService.findAll();
+  @ResponseMessage("Fetch all resume pagination")
+  findAll(@Query('current') current: string,
+    @Query('pageSize') pageSize: string,
+    @Query() qs) {
+    return this.resumesService.findAll(+current, +pageSize, qs);
   }
 
+  @Public()
   @Get(':id')
+  @ResponseMessage("Fetch a resume")
   findOne(@Param('id') id: string) {
-    return this.resumesService.findOne(+id);
+    return this.resumesService.findOne(id);
   }
 
   @Patch(':id')
@@ -28,7 +37,7 @@ export class ResumesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.resumesService.remove(+id);
+  remove(@Param('id') id: string, @User() user: IUser, updateResumeDto: UpdateResumeDto) {
+    return this.resumesService.remove(id, user, updateResumeDto);
   }
 }
