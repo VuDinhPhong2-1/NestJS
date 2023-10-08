@@ -64,6 +64,23 @@ export class ResumesService {
     }
   }
 
+  async findByUsers(user: IUser) {
+    return await this.ResumeModel.find({
+      userId: user._id,
+    })
+      .sort("-createdAt")
+      .populate([
+        {
+          path: "companyId",
+          select: { name: 1 }
+        },
+        {
+          path: "jobId",
+          select: { name: 1 }
+        }
+      ])
+  }
+
   findOne(id: string) {
     if (!mongoose.Schema.Types.ObjectId) {
       return new BadRequestException('Id khong hop le!')

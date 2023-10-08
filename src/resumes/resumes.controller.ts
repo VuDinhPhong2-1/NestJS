@@ -23,7 +23,11 @@ export class ResumesController {
     @Query() qs) {
     return this.resumesService.findAll(+current, +pageSize, qs);
   }
-
+  @Get('by-user')
+  @ResponseMessage("Fetch a resume")
+  findByUserId(@User() user: IUser) {
+    return this.resumesService.findByUsers(user);
+  }
   @Public()
   @Get(':id')
   @ResponseMessage("Fetch a resume")

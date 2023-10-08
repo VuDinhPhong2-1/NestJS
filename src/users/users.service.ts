@@ -62,7 +62,12 @@ export class UsersService {
     if (!mongoose.isValidObjectId(id)) {
       throw new NotFoundException('Id không hợp lệ!');
     }
-    const user = await this.UserModel.findOne({ _id: id }).select('-password').exec();
+    const user = await this.UserModel.findOne({ _id: id }).select('-password')
+      .populate({
+        path: 'role',
+        select: { name: 1, _id: 1 }
+      })
+      .exec();
     if (!user) {
       throw new NotFoundException('Không tồn tại người dùng!');
     }
@@ -71,7 +76,11 @@ export class UsersService {
   async findOneByEmail(email: string) {
     try {
       if (email === null || email === '' || email === undefined) return "Không được để trống email người dùng!";
-      const user = await this.UserModel.findOne({ email: email });
+      const user = await this.UserModel.findOne({ email: email })
+        .populate({
+          path: 'role',
+          select: { name: 1, permisstion: 1 }
+        });
       if (!user) return "Không tìm thấy người dùng!"
       return user;
     } catch (error) {
