@@ -12,6 +12,10 @@ import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
 import { CompaniesModule } from './companies/companies.module';
 import { JobsModule } from './jobs/jobs.module';
 import { FilesModule } from './files/files.module';
+import { ResumesModule } from './resumes/resumes.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { RolesModule } from './roles/roles.module';
+import { DatabasesModule } from './databases/databases.module';
 
 @Module({
   imports: [
@@ -27,7 +31,15 @@ import { FilesModule } from './files/files.module';
       inject: [ConfigService],
     }),
     ConfigModule.forRoot({ isGlobal: true }),// Cấu hình toàn cục, truy cập từ bất kỳ module nào trong ứng dụng mà không cần phải import lại ConfigModule
-    UsersModule, AuthModule, CompaniesModule, JobsModule, FilesModule,
+    UsersModule,
+    AuthModule,
+    CompaniesModule,
+    JobsModule,
+    FilesModule,
+    ResumesModule,
+    PermissionsModule,
+    RolesModule,
+    DatabasesModule,
   ],
   controllers: [AppController],
   providers: [AppService,
