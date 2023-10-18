@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,11 +9,17 @@ import { error } from 'console';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose/dist/soft-delete-model';
 import { IUser } from './users.interface';
 import aqp from 'api-query-params';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
+import { USER_ROLE } from 'src/databases/sample';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name)
-    private UserModel: SoftDeleteModel<UserDocument>) { }
+    private UserModel: SoftDeleteModel<UserDocument>,
+
+    @InjectModel(Role.name)
+    private RoleModel: SoftDeleteModel<RoleDocument>,
+  ) { }
 
   hashPassword = (password: string) => {
     const salt = genSaltSync(10);
@@ -22,14 +28,31 @@ export class UsersService {
   }
   async create(createUserDto: CreateUserDto) {
     try {
-      const newUser = new this.UserModel(createUserDto);
-      newUser.password = this.hashPassword(createUserDto.password); // Mã hóa mật khẩu trước khi lưu
-      await this.UserModel.create(newUser); // Lưu đối tượng vào cơ sở dữ liệu
+      const isExitEmail = await this.UserModel.findOne({ email: createUserDto.email });
+      if (isExitEmail) {
+        throw new BadRequestException(`Email: ${createUserDto.email} đã tồn tại trên hệ thống`);
+      }
+
+      // Fetch user role
+      const userRole = await this.RoleModel.findOne({ name: USER_ROLE });
+
+      // Create a new user with all required fields
+      const newUser = new this.UserModel({
+        name: createUserDto.name,
+        email: createUserDto.email,
+        password: await this.hashPassword(createUserDto.password),
+        role: userRole?._id,
+      });
+
+      // Save the user to the database
+      await newUser.save();
+
       return newUser;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
+
 
   async findAll(current: number, pageSize: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
@@ -79,7 +102,7 @@ export class UsersService {
       const user = await this.UserModel.findOne({ email: email })
         .populate({
           path: 'role',
-          select: { name: 1, permisstion: 1 }
+          select: { name: 1 }
         });
       if (!user) return "Không tìm thấy người dùng!"
       return user;

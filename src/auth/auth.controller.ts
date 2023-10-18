@@ -6,11 +6,13 @@ import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 import { IUser } from 'src/users/users.interface';
+import { RolesService } from 'src/roles/roles.service';
 
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+    constructor(private authService: AuthService,
+        private readonly rolesService: RolesService) { }
     @Public()
     @UseGuards(LocalAuthGuard) // Deco này sẽ tự đọc biến req.body để xác thực
     @Post("/login")
@@ -33,7 +35,7 @@ export class AuthController {
 
     @Get('/account')
     @ResponseMessage('Get infomation account')
-    handleGetAccount(@User() user: IUser) {
+    async handleGetAccount(@User() user: IUser) {
         return user;
     }
 
@@ -54,6 +56,6 @@ export class AuthController {
         @User() user: IUser,
         @Res({ passthrough: true }) response: Response
     ) {
-        this.authService.deleteCookieAndToken(user._id.toString(),response);
+        this.authService.deleteCookieAndToken(user._id.toString(), response);
     }
 }

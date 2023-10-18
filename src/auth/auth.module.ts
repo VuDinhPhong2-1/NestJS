@@ -10,10 +10,13 @@ import { AuthController } from './auth.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import ms from 'ms';
+import { RolesService } from 'src/roles/roles.service';
+import { RolesModule } from 'src/roles/roles.module';
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    RolesModule,
     // Cấu hình configModule và configService cho JwtModule
     JwtModule.registerAsync({
       imports: [ConfigModule],
