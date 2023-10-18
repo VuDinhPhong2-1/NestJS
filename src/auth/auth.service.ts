@@ -10,7 +10,8 @@ import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { retry, throwError } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import ms from 'ms';
-import { Response } from 'express';
+import e, { Response } from 'express';
+import { RolesService } from 'src/roles/roles.service';
 @Injectable()
 export class AuthService {
     constructor(
@@ -18,7 +19,8 @@ export class AuthService {
         private jwtService: JwtService,
         @InjectModel(User.name)
         private UserModel: SoftDeleteModel<UserDocument>,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private readonly rolesService: RolesService
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -28,15 +30,24 @@ export class AuthService {
             throw new InternalServerErrorException("Tên đăng nhập không hợp lệ!");
         }
         const isPassword = await this.usersService.isValidPassword(pass, user.password)
-        if (!isPassword) {
+        if (isPassword === false) {
             throw new InternalServerErrorException("Mật khẩu và Tên người dùng không đúng!!!");
+        } else {
+            // trả về thông tin người dùng => login nhận thông tin và tạo token...
+            const userRole = user.role as unknown as { _id: string; name: string };
+            const temp = await this.rolesService.findOne(userRole._id);
+            //console.log({ permission: temp?.permissions ?? [] })
+            const objUser = {
+                ...user.toObject(),
+                permission: temp?.permissions ?? []
+            }
+            return objUser; // Lưu vào request.user
         }
-        // trả về thông tin người dùng => login nhận thông tin và tạo token...
-        return user;
+
     }
 
     async login(user: IUser, response: Response) {
-        const { _id, name, email, role } = user;
+        const { _id, name, email, role, permission } = user;
         const payload = {
             sub: "token login",
             iss: "from server",
@@ -62,6 +73,7 @@ export class AuthService {
                 email,
             },
             role,
+            permission
         };
     }
 
@@ -80,7 +92,7 @@ export class AuthService {
             });
         return result;
     }
-    
+
     createRefreshToken = (payload) => {
         const refresh_token = this.jwtService.sign(payload, {
             secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
@@ -109,6 +121,10 @@ export class AuthService {
                 const refresh_token = this.createRefreshToken(payload);
                 // gọi tới hàm update token cho user
                 await this.usersService.updateUserToken(refresh_token, _id.toString());
+
+                //fetch user's role
+                const userRole = user.role as unknown as { _id: string; name: string };
+                const temp = await this.rolesService.findOne(userRole._id);
                 //set refresh token cần ở cookie
                 response.clearCookie('refresh_token');
                 response.cookie('refresh_token', refresh_token, {
@@ -123,6 +139,7 @@ export class AuthService {
                         email,
                     },
                     role,
+                    permission: temp?.permissions ?? []
                 };
             } else {
                 throw new BadRequestException("Token không hợp lệ! Hãy login");
