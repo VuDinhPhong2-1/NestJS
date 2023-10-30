@@ -7,6 +7,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
 import cookieParser from 'cookie-parser';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
@@ -38,12 +39,37 @@ async function bootstrap() {
 
   // config cookie
   app.use(cookieParser());
-  
+
   //config versioning url
   app.setGlobalPrefix('api') // Tiền tố sẽ là "api"
   app.enableVersioning({
     type: VersioningType.URI, // mặc định của VersioningType.URI là '/v'
     defaultVersion: ['1', '2'], // => v1,v2
+  });
+
+  // config Swagger document
+  const config = new DocumentBuilder()
+    .setTitle('API BACKEND NESTJS')
+    .setDescription('The API description')
+    .setVersion('1.0')
+    //.addTag('cats')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('swagger', app, document, {
+    swaggerOptions:{
+      persisAuthorization: true
+    }
   });
 
   await app.listen(configService.get<string>('PORT'));
