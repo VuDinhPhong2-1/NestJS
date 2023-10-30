@@ -2,9 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SubscribersService } from './subscribers.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
-import { ResponseMessage, User } from 'src/decorators/customize';
+import { Public, ResponseMessage, User } from 'src/decorators/customize';
 import { IUser } from 'src/users/users.interface';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('subscribers')
 @Controller('subscribers')
 export class SubscribersController {
   constructor(private readonly subscribersService: SubscribersService) { }
@@ -15,6 +17,7 @@ export class SubscribersController {
     return this.subscribersService.create(createSubscriberDto, user);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.subscribersService.findAll();

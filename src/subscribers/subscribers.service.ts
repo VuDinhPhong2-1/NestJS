@@ -23,8 +23,9 @@ export class SubscribersService {
     return result;
   }
 
-  findAll() {
-    return `This action returns all subscribers`;
+  async findAll() {
+    const result = await this.subscriberModel.find();
+    return result;
   }
 
   findOne(id: string) {
